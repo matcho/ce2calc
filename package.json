@@ -1,0 +1,19 @@
+{
+  "name": "ce2calc",
+  "version": "0.0.1",
+  "description": "faisons des calculs comme en ce2",
+  "main": "ce2calc.js",
+  "scripts": {
+    "test": "jasmine test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matcho/ce2calc.git"
+  },
+  "author": "Mathias Chouet",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/matcho/ce2calc/issues"
+  },
+  "homepage": "https://github.com/matcho/ce2calc#readme"
+}
