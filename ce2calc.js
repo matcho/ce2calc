@@ -120,6 +120,20 @@ const decimalLength = (str) => {
     return dp ? dp.length : 0;
 };
 
+/**
+ * Removes leading and trailing "0"s, and possible trailing "."
+ * @param string str 
+ */
+const clean = (str) => {
+    const withoutZeroes = str.replace(/^0+|0+$/g, '');
+    const withoutTrailingDot = (
+        withoutZeroes.charAt(withoutZeroes.length - 1) === "."
+        ? withoutZeroes.substring(0, withoutZeroes.length - 1)
+        : withoutZeroes
+    );
+    return withoutTrailingDot;
+};
+
 // the 4 base operations
 
 const plus = (a, b) => {
@@ -157,7 +171,7 @@ const plus = (a, b) => {
         ret = (s > 9) ? 1 : 0;
         sum = d + sum;
     }
-    return sum;
+    return clean(sum);
 };
 
 const minus = (a, b) => {
