@@ -17,7 +17,7 @@ const isInfinite = (str) => {
  * @param string str 
  */
 const abs = (str) => {
-    if (str.isNegative()) {
+    if (isNegative(str)) {
         return str.substring(1);
     } else {
         return str;
@@ -29,7 +29,7 @@ const abs = (str) => {
  * @param string str 
  */
 const opposite = (str) => {
-    if (str.isNegative()) {
+    if (isNegative(str)) {
         return str.substring(1);
     } else {
         return "-" + str;
@@ -41,11 +41,14 @@ const opposite = (str) => {
  * @param string str 
  */
 const integerPart = (str) => {
+    let ip = str;
     if (str.indexOf(".") >= 0) {
-        return str.substr(0, str.indexOf("."));
-    } else {
-        return str;
+        ip = str.substr(0, str.indexOf("."));
     }
+    if (isNegative(ip)) {
+        ip = abs(ip);
+    }
+    return ip;
 };
 
 /**
@@ -61,6 +64,18 @@ const decimalPart = (str) => {
 };
 
 /**
+ * Returns the negation part of given numerical string ("-" or "")
+ * @param string str 
+ */
+const negativePart = (str) => {
+    if (str.length > 0 && str.charAt(0) === "-") {
+        return "-";
+    } else {
+        return "";
+    }
+};
+
+/**
  * Pads a or b with "0"s on the left (integer) side, so that a and b
  * have the same length, preserving the numerical value
  * @param string a
@@ -69,9 +84,17 @@ const decimalPart = (str) => {
  */
 const padLeft = (a, b) => {
     if (integerLength(a) > integerLength(b)) {
-        b = integerPart(b).padStart(integerLength(a), '0') + "." + decimalPart(b);
+        const dpB = decimalPart(b);
+        b = negativePart(b) + integerPart(b).padStart(integerLength(a), '0')
+        if (dpB) {
+            b += "." + dpB;
+        }
     } else {
-        a = integerPart(a).padStart(integerLength(b), '0') + "." + decimalPart(a);
+        const dpA = decimalPart(a);
+        a = negativePart(a) + integerPart(a).padStart(integerLength(b), '0');
+        if (dpA) {
+            a += "." + dpA;
+        }
     }
     return [ a, b ];
 };
@@ -94,9 +117,9 @@ const padRight = (a, b) => {
             b = b + ".";
         }
         if (decA > decB) {
-            b = integerPart(b) + "." + decimalPart(b).padEnd(decA, 0);
+            b = negativePart(b) + integerPart(b) + "." + decimalPart(b).padEnd(decA, 0);
         } else if (decB > decA) {
-            a = integerPart(a) + "." + decimalPart(a).padEnd(decB, 0);
+            a = negativePart(a) + integerPart(a) + "." + decimalPart(a).padEnd(decB, 0);
         }
     }
     return [ a, b ];
@@ -136,6 +159,7 @@ const clean = (str) => {
 
 // the 4 base operations
 
+/** The addition operation */
 const plus = (a, b) => {
     // specific cases
     if (a === "0") {
@@ -167,28 +191,60 @@ const plus = (a, b) => {
             continue;
         }
         const s = Number(a.charAt(i)) + Number(b.charAt(i)) + ret;
-        const d = s % 10;
+        const mod = s % 10;
         ret = (s > 9) ? 1 : 0;
-        sum = d + sum;
+        sum = mod + sum;
     }
     return clean(sum);
 };
 
+/** The substraction operation */
 const minus = (a, b) => {
     // specific cases
     if (a === "0") {
-        if (isNegative(b)) {
-            return b.substring(1);
-        } else {
-            return "-" + b;
-        }
+        return opposite(b);
     }
     if (b === "0") {
         return a;
     }
+    // a - (-b) => a + b
+    if (isNegative(b)) {
+        return plus(a, abs(b));
+    }
+    // -a - b => -(a + b)
+    if (isNegative(a)) {
+        return "-" + plus(abs(a), b);
+    }
     // general case
+    [ a, b ] = padLeft(a, b);
+    [ a, b ] = padRight(a, b);
+    // compute
+    let difference = "";
+    let ret = 0;
+    for (let i = a.length - 1; i >= 0; i--) {
+        if (a.charAt(i) === ".") {
+            // b.charAt(i) === "." too
+            difference = "." + difference;
+            continue;
+        }
+        if (a.charAt(i) === "-" || b.charAt(i) === "-") {
+            continue;
+        }
+        let n = Number(a.charAt(i));
+        if (n === 0) {
+            n = 10;
+        }
+        const s = n - Number(b.charAt(i)) - ret;
+        ret = (s < 0 || n === 10) ? 1 : 0;
+        difference = abs(String(s)) + difference;
+    }
+    if (ret === 1) {
+        difference = "-" + difference;
+    }
+    return clean(difference);
 };
 
+/** The multiplication operation */
 const times = (a, b) => {
     // specific cases
     if (a === "0" || b === "0") {
@@ -203,6 +259,7 @@ const times = (a, b) => {
     // general case
 };
 
+/** The division operation */
 const dividedby = (a, b) => {
     // specific cases
     if (a === "0") {
@@ -241,5 +298,7 @@ module.exports = {
     plus: ma_plus,
     minus: minus,
     times: ma_times,
-    dividedby: dividedby
+    dividedby: dividedby,
+    padLeft: padLeft,
+    padRight: padRight
 };
