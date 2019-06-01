@@ -37,7 +37,8 @@ const opposite = (str) => {
 };
 
 /**
- * Returns the integer part of given numerical string
+ * Returns the integer part of given numerical string, without
+ * the possible leading "-"
  * @param string str 
  */
 const integerPart = (str) => {
@@ -59,7 +60,7 @@ const decimalPart = (str) => {
     if (str.indexOf(".") >= 0) {
         return str.substr(str.indexOf(".") + 1);
     } else {
-        return 0;
+        return "";
     }
 };
 
@@ -117,9 +118,9 @@ const padRight = (a, b) => {
             b = b + ".";
         }
         if (decA > decB) {
-            b = negativePart(b) + integerPart(b) + "." + decimalPart(b).padEnd(decA, 0);
+            b = negativePart(b) + integerPart(b) + "." + decimalPart(b).padEnd(decA, '0');
         } else if (decB > decA) {
-            a = negativePart(a) + integerPart(a) + "." + decimalPart(a).padEnd(decB, 0);
+            a = negativePart(a) + integerPart(a) + "." + decimalPart(a).padEnd(decB, '0');
         }
     }
     return [ a, b ];
@@ -154,8 +155,103 @@ const clean = (str) => {
         ? withoutZeroes.substring(0, withoutZeroes.length - 1)
         : withoutZeroes
     );
-    return withoutTrailingDot;
+    const withLeadingZero = (
+        withoutTrailingDot.charAt(0) === "."
+        ? "0" + withoutTrailingDot
+        : withoutTrailingDot
+    );
+    return withLeadingZero;
 };
+
+/**
+ * Returns the position of the ${i}th caracter of ${a},
+ * relatively to the decimal separator ("dot") of ${a}
+ * ex:
+ *  * 45, 1 => 0
+ *  * 45, 0 => 1
+ *  * 4.5, 2 => -1
+ *  * 4.5, 1 => undefined
+ *  * 12324.5, 1 => 3
+ *  * 0.00000001, 3 => -2
+ * @param {string} a 
+ * @param {number} i position of the tested digit
+ */
+const positionToDot = (a, i) => {
+    const pos = a.indexOf(".");
+    const l = a.length;
+    if (pos !== -1) {
+        if (pos === i) {
+            return undefined; // @TODO throw error ?
+        } else {
+            if (pos < i) {
+                return (pos - i);
+            } else { // pos > i
+                return (pos - i - 1);
+            }
+        }
+    } else {
+        return l - (i + 1);
+    }
+};
+
+/**
+ * Multiplies n by 10^p
+ * ex:
+ *  * "3", 4 => 30000
+ *  * "3", -2 => 0.03
+ *  * "2533", -2 => 25.33
+ *  * "2.30023", 2 => 230.023
+ *  * "2.30023", 7 => 23002300
+  * * "2.30023", -4 => 0.000230023
+ * @param {string} n 
+ * @param {number} p 
+ */
+const shiftByPowerOfTen = (n, p) => {
+    if (p === 0) {
+        return n;
+    }
+    const absN = abs(n);
+    const l = absN.length;
+    const dp = decimalPart(n);
+    const ip = integerPart(n);
+    const il = integerLength(n);
+    const dl = decimalLength(n);
+    const np = negativePart(n);
+    // cases
+    if (dp === "") {
+        if (p > 0) {
+            return np + absN.padEnd(l + p, '0');
+        } else { // p < 0
+            const absP = Math.abs(p);
+            if (il > absP) {
+                return np + absN.substring(0, absP) + "." + absN.substring(absP);
+            } else {
+                return np + "0." + absN.padStart(l + absP - 1, '0');
+            }
+        }
+    } else { // dp !== ""
+        if (p > 0) {
+            // move decimal separator to the right
+            let newDp = dp;
+            if (dl > p) {
+                newDp = dp.substring(0, p) + "." + dp.substring(p);
+            } else {
+                newDp = dp.padEnd(p, '0');
+            }
+            return np + ip + newDp;
+        } else { // p < 0
+            // move decimal separator to the left
+            let newIp = ip;
+            const absP = Math.abs(p);
+            if (il > absP) {
+                newIp = ip.substring(0, il - absP) + "." + ip.substring(il - absP);
+            } else {
+                newIp = "0." + ip.padStart(absP, '0');
+            }
+            return np + newIp + dp;
+        }
+    }
+}
 
 // the 4 base operations
 
@@ -193,7 +289,10 @@ const plus = (a, b) => {
         const s = Number(a.charAt(i)) + Number(b.charAt(i)) + ret;
         const mod = s % 10;
         ret = (s > 9) ? 1 : 0;
-        sum = mod + sum;
+        sum = String(mod) + sum;
+    }
+    if (ret === 1) {
+        sum = "1" + sum;
     }
     return clean(sum);
 };
@@ -227,9 +326,6 @@ const minus = (a, b) => {
             difference = "." + difference;
             continue;
         }
-        if (a.charAt(i) === "-" || b.charAt(i) === "-") {
-            continue;
-        }
         let n = Number(a.charAt(i));
         if (n === 0) {
             n = 10;
@@ -256,7 +352,50 @@ const times = (a, b) => {
     if (a === "1") {
         return b;
     }
+    // -a * -b => a * b
+    if (isNegative(a) && isNegative(b)) {
+        return times(abs(a), abs(b));
+    }
+    // -a * b => -(a * b)
+    if (isNegative(a)) {
+        return "-" + times(abs(a), b);
+    }
+    if (isNegative(b)) {
+        return "-" + times(a, abs(b));
+    }
     // general case
+    let product = "";
+    let ret = 0;
+    for (let i = a.length - 1; i >= 0; i--) {
+        const ai = a.charAt(i);
+        if (ai === ".") {
+            continue;
+        }
+        const ptd = positionToDot(a, i);
+        // multiply a's current digit with b
+        let sum = "";
+        for (let j = b.length - 1; j >= 0; j--) {
+            const bj = b.charAt(j);
+            if (bj === ".") {
+                sum = "." + sum;
+                continue;
+            }
+            const p = Number(ai) * Number(bj) + ret;
+            const mod = p % 10;
+            ret = Math.floor(p / 10);
+            sum = String(mod) + sum;
+        }
+        if (ret > 0) {
+            sum = String(ret) + sum;
+        }
+        // adjust sum by a power of 10 equal to ptd
+        sum = shiftByPowerOfTen(sum, ptd);
+        // add the resulting sum
+        product = plus(product, sum);
+    }
+
+    return clean(product);
+
 };
 
 /** The division operation */
@@ -300,5 +439,7 @@ module.exports = {
     times: ma_times,
     dividedby: dividedby,
     padLeft: padLeft,
-    padRight: padRight
+    padRight: padRight,
+    positionToDot: positionToDot,
+    shiftByPowerOfTen: shiftByPowerOfTen
 };

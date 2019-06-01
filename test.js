@@ -1,6 +1,6 @@
 const lib = require("./ce2calc");
 
-describe("padding", () => {
+describe("padding :", () => {
     const cases = [
         { a: "3",       b: "4",         la: "3",        lb: "4",              ra: "3",             rb: "4" },
         { a: "3.5",     b: "0.04",      la: "3.5",      lb: "0.04",           ra: "3.50",          rb: "0.04" },
@@ -17,9 +17,44 @@ describe("padding", () => {
     }
 });
 
-describe("additions", () => {
+describe("position to dot :", () => {
+    const cases = [
+        { a: "45",          i: 1,     p: 0 },
+        { a: "45",          i: 0,     p: 1 },
+        { a: "4.5",         i: 2,     p: -1 },
+        { a: "4.5",         i: 1,     p: undefined },
+        { a: "12324.5",     i: 1,     p: 3 },
+        { a: "0.00000001",  i: 3,     p: -2 },
+    ];
+    for (const c of cases) {
+        it (`positionToDot ${c.a}, ${c.i} => ${c.p}`, () => {
+            expect(lib.positionToDot(c.a, c.i)).toEqual(c.p);
+        });
+    }
+});
+
+describe("shift by power of ten :", () => {
+    const cases = [
+        { n: "3",         p: 4,   r: "30000" },
+        { n: "3",         p: -2,  r: "0.03" },
+        { n: "-3",        p: -2,  r: "-0.03" },
+        { n: "2533",      p: -2,  r: "25.33" },
+        { n: "2.30023",   p: 2,   r: "230.023" },
+        { n: "2.30023",   p: 7,   r: "23002300" },
+        { n: "2.30023",   p: -4,  r: "0.000230023" },
+        { n: "-2.30023",  p: -4,  r: "-0.000230023" },
+    ];
+    for (const c of cases) {
+        it (`shiftByPowerOfTen ${c.n}, ${c.p} => ${c.r}`, () => {
+            expect(lib.shiftByPowerOfTen(c.n, c.p)).toEqual(c.r);
+        });
+    }
+});
+
+describe("additions :", () => {
     const cases = [
         { a: "3",       b: "4",         r: "7" },
+        { a: "3",       b: "8",         r: "11" },
         { a: "3.5",     b: "0.04",      r: "3.54" },
         { a: "3",       b: "-4",         r: "-1" },
     ];
@@ -30,7 +65,7 @@ describe("additions", () => {
     }
 });
 
-describe("substractions", () => {
+describe("substractions :", () => {
     const cases = [
         { a: "7",       b: "4",         r: "3" },
         { a: "3.54",    b: "0.04",      r: "3.5" },
@@ -46,25 +81,26 @@ describe("substractions", () => {
     }
 });
 
-xdescribe("multiplications", () => {
+describe("multiplications :", () => {
     const cases = [
         { a: "3",       b: "4",         r: "12" },
+        { a: "3",       b: "-4",        r: "-12" },
         { a: "3.5",     b: "0.04",      r: "0.14" }
     ];
     for (const c of cases) {
-        it (`${c.a} + ${c.b} = ${c.r}`, () => {
+        it (`${c.a} * ${c.b} = ${c.r}`, () => {
             expect(lib.times(c.a, c.b)).toBe(c.r);
         });
     }
 });
 
-xdescribe("divisions", () => {
+xdescribe("divisions :", () => {
     const cases = [
         { a: "12",       b: "4",         r: "3" },
         { a: "0.14",     b: "0.04",      r: "3.5" }
     ];
     for (const c of cases) {
-        it (`${c.a} + ${c.b} = ${c.r}`, () => {
+        it (`${c.a} / ${c.b} = ${c.r}`, () => {
             expect(lib.dividedby(c.a, c.b)).toBe(c.r);
         });
     }
