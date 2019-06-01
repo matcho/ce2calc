@@ -7,9 +7,19 @@ const isNegative = (str) => {
     return str.charAt(0) === "-";
 };
 
-/** returns true if str represents infinity (positive or not) */
-const isInfinite = (str) => {
-    return str === "∞" || str === "-∞";
+/** returns true if str is positive (does not start with "-") */
+const isPositive = (str) => {
+    return str.charAt(0) !== "-";
+};
+
+/** returns true if str is even */
+const isEven = (str) => {
+    return Number(str.charAt(str.length - 1)) % 2 === 0;
+};
+
+/** returns true if str is odd */
+const isOdd = (str) => {
+    return Number(str.charAt(str.length - 1)) % 2 === 1;
 };
 
 /**
@@ -124,6 +134,28 @@ const padRight = (a, b) => {
         }
     }
     return [ a, b ];
+};
+
+/**
+ * Returns true if a > b
+ * @param {string} a 
+ * @param {string} b 
+ */
+const greaterThan = (a, b) => {
+    [ a, b ] = padLeft(a, b);
+    [ a, b ] = padRight(a, b);
+    return a > b;
+};
+
+/**
+ * Returns true if a < b
+ * @param {string} a 
+ * @param {string} b 
+ */
+const lowerThan = (a, b) => {
+    [ a, b ] = padLeft(a, b);
+    [ a, b ] = padRight(a, b);
+    return a < b;
 };
 
 /**
@@ -438,6 +470,14 @@ module.exports = {
     minus: minus,
     times: ma_times,
     dividedby: dividedby,
+    abs: abs,
+    isNegative: isNegative,
+    isPositive: isPositive,
+    isEven: isEven,
+    isOdd: isOdd,
+    greaterThan: greaterThan,
+    lowerThan: lowerThan,
+    // for testing only
     padLeft: padLeft,
     padRight: padRight,
     positionToDot: positionToDot,
