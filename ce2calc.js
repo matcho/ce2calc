@@ -159,6 +159,24 @@ const lowerThan = (a, b) => {
 };
 
 /**
+ * Returns b if b < a, otherwise returns a
+ * @param {string} a 
+ * @param {string} b 
+ */
+const min = (a, b) => {
+    return lowerThan(b, a) ? b : a;
+};
+
+/**
+ * Returns b if b > a, otherwise returns a
+ * @param {string} a 
+ * @param {string} b 
+ */
+const max = (a, b) => {
+    return greaterThan(b, a) ? b : a;
+};
+
+/**
  * Returns the length of the integer part of str
  * @param string str 
  */
@@ -477,6 +495,8 @@ module.exports = {
     isOdd: isOdd,
     greaterThan: greaterThan,
     lowerThan: lowerThan,
+    min: min,
+    max: max,
     // for testing only
     padLeft: padLeft,
     padRight: padRight,
