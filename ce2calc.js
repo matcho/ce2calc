@@ -414,7 +414,7 @@ const times = (a, b) => {
         return "-" + times(a, abs(b));
     }
     // general case
-    let product = "";
+    let product = "0";
     let ret = 0;
     for (let i = a.length - 1; i >= 0; i--) {
         const ai = a.charAt(i);
@@ -437,6 +437,7 @@ const times = (a, b) => {
         }
         if (ret > 0) {
             sum = String(ret) + sum;
+            ret = 0;
         }
         // adjust sum by a power of 10 equal to ptd
         sum = shiftByPowerOfTen(sum, ptd);
@@ -461,6 +462,33 @@ const dividedby = (a, b) => {
         return "∞";
     }
     // general case
+};
+
+/** The power operation */
+const power = (a, b) => {
+    // specific cases
+    if (a === "0") {
+        return "0";
+    }
+    if (a === "1") {
+        return "1";
+    }
+    if (b === "0") {
+        return "1";
+    }
+    if (b === "1") {
+        return a;
+    }
+    // a^-b = 1 / a^b
+    if (lowerThan(b, "0")) {
+        return dividedby(1, power(a, abs(b)));
+    }
+    // general case
+    let result = a;
+    for (let i=0; i < Number(b)-1; i++) {
+        result = times(result, a);
+    }
+    return result;
 };
 
 // multiple arguments for plus() and times()
@@ -488,6 +516,7 @@ module.exports = {
     minus: minus,
     times: ma_times,
     dividedby: dividedby,
+    power: power,
     abs: abs,
     isNegative: isNegative,
     isPositive: isPositive,

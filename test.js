@@ -83,6 +83,8 @@ describe("substractions :", () => {
 
 describe("multiplications :", () => {
     const cases = [
+        { a: "2",       b: "16",        r: "32" },
+        { a: "16",      b: "2",         r: "32" },
         { a: "3",       b: "4",         r: "12" },
         { a: "3",       b: "-4",        r: "-12" },
         { a: "3.5",     b: "0.04",      r: "0.14" }
@@ -102,6 +104,24 @@ xdescribe("divisions :", () => {
     for (const c of cases) {
         it (`${c.a} / ${c.b} = ${c.r}`, () => {
             expect(lib.dividedby(c.a, c.b)).toBe(c.r);
+        });
+    }
+});
+
+describe("power :", () => {
+    const cases = [
+        { a: "0",       b: "423",    r: "0" },
+        { a: "-8.2823", b: "0",      r: "1" },
+        { a: "3.5",     b: "1",      r: "3.5" },
+        { a: "1",       b: "14",     r: "1" },
+        { a: "2",       b: "10",     r: "1024" },
+        { a: "-4",      b: "2",      r: "16" },
+        { a: "-4",      b: "3",      r: "-64" },
+        { a: "2",       b: "-3",     r: "0.125" },
+    ];
+    for (const c of cases) {
+        it (`${c.a} ^ ${c.b} = ${c.r}`, () => {
+            expect(lib.power(c.a, c.b)).toBe(c.r);
         });
     }
 });
