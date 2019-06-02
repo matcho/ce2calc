@@ -35,6 +35,7 @@ describe("position to dot :", () => {
 
 describe("shift by power of ten :", () => {
     const cases = [
+        { n: "20",        p: -2,  r: "0.2" },
         { n: "3",         p: 4,   r: "30000" },
         { n: "3",         p: -2,  r: "0.03" },
         { n: "-3",        p: -2,  r: "-0.03" },
@@ -67,6 +68,7 @@ describe("additions :", () => {
 
 describe("substractions :", () => {
     const cases = [
+        { a: "12",      b: "4",         r: "8" },
         { a: "7",       b: "4",         r: "3" },
         { a: "3.54",    b: "0.04",      r: "3.5" },
         { a: "1",    b: "8",      r: "-7" },
@@ -87,7 +89,8 @@ describe("multiplications :", () => {
         { a: "16",      b: "2",         r: "32" },
         { a: "3",       b: "4",         r: "12" },
         { a: "3",       b: "-4",        r: "-12" },
-        { a: "3.5",     b: "0.04",      r: "0.14" }
+        { a: "3.5",     b: "0.04",      r: "0.14" },
+        { a: "0.03",    b: "10",        r: "0.3" },
     ];
     for (const c of cases) {
         it (`${c.a} * ${c.b} = ${c.r}`, () => {
@@ -96,14 +99,15 @@ describe("multiplications :", () => {
     }
 });
 
-xdescribe("divisions :", () => {
+describe("divisions :", () => {
     const cases = [
         { a: "12",       b: "4",         r: "3" },
         { a: "0.14",     b: "0.04",      r: "3.5" }
     ];
     for (const c of cases) {
         it (`${c.a} / ${c.b} = ${c.r}`, () => {
-            expect(lib.dividedby(c.a, c.b)).toBe(c.r);
+            const res = lib.dividedby(c.a, c.b)
+            expect(res).toBe(c.r);
         });
     }
 });

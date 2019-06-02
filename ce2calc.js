@@ -148,6 +148,17 @@ const greaterThan = (a, b) => {
 };
 
 /**
+ * Returns true if a >= b
+ * @param {string} a 
+ * @param {string} b 
+ */
+const greaterThanOrEqual = (a, b) => {
+    [ a, b ] = padLeft(a, b);
+    [ a, b ] = padRight(a, b);
+    return a > b || a === b;
+};
+
+/**
  * Returns true if a < b
  * @param {string} a 
  * @param {string} b 
@@ -156,6 +167,17 @@ const lowerThan = (a, b) => {
     [ a, b ] = padLeft(a, b);
     [ a, b ] = padRight(a, b);
     return a < b;
+};
+
+/**
+ * Returns true if a <= b
+ * @param {string} a 
+ * @param {string} b 
+ */
+const lowerThanOrEqual = (a, b) => {
+    [ a, b ] = padLeft(a, b);
+    [ a, b ] = padRight(a, b);
+    return a < b || a === b;
 };
 
 /**
@@ -195,22 +217,24 @@ const decimalLength = (str) => {
 };
 
 /**
- * Removes leading and trailing "0"s, and possible trailing "."
+ * Removes leading and trailing "0"s, and possible trailing ".";
+ * add leading 0 before "." if needed
  * @param string str 
  */
 const clean = (str) => {
-    const withoutZeroes = str.replace(/^0+|0+$/g, '');
-    const withoutTrailingDot = (
-        withoutZeroes.charAt(withoutZeroes.length - 1) === "."
-        ? withoutZeroes.substring(0, withoutZeroes.length - 1)
-        : withoutZeroes
-    );
-    const withLeadingZero = (
-        withoutTrailingDot.charAt(0) === "."
-        ? "0" + withoutTrailingDot
-        : withoutTrailingDot
-    );
-    return withLeadingZero;
+    const ip = integerPart(str);
+    const dp = decimalPart(str);
+    const np = negativePart(str);
+    let cleanIp = ip.replace(/^0+/g, '');
+    if (cleanIp === "" && dp !== "") {
+        cleanIp = "0";
+    }
+    const cleanDp = dp.replace(/0+$/g, '');
+    let res = np + cleanIp;
+    if (cleanDp !== "") {
+        res += "." + cleanDp;
+    }
+    return res;
 };
 
 /**
@@ -270,13 +294,13 @@ const shiftByPowerOfTen = (n, p) => {
     // cases
     if (dp === "") {
         if (p > 0) {
-            return np + absN.padEnd(l + p, '0');
+            return clean(np + absN.padEnd(l + p, '0'));
         } else { // p < 0
             const absP = Math.abs(p);
             if (il > absP) {
-                return np + absN.substring(0, absP) + "." + absN.substring(absP);
+                return clean(np + absN.substring(0, absP) + "." + absN.substring(absP));
             } else {
-                return np + "0." + absN.padStart(l + absP - 1, '0');
+                return clean(np + "0." + absN.padStart(absP, '0'));
             }
         }
     } else { // dp !== ""
@@ -356,6 +380,9 @@ const minus = (a, b) => {
     if (b === "0") {
         return a;
     }
+    if (a === b) {
+        return "0";
+    }
     // a - (-b) => a + b
     if (isNegative(b)) {
         return plus(a, abs(b));
@@ -363,6 +390,9 @@ const minus = (a, b) => {
     // -a - b => -(a + b)
     if (isNegative(a)) {
         return "-" + plus(abs(a), b);
+    }
+    if (greaterThan(b, a)) {
+        return "-" + minus(b, a);
     }
     // general case
     [ a, b ] = padLeft(a, b);
@@ -376,12 +406,13 @@ const minus = (a, b) => {
             difference = "." + difference;
             continue;
         }
-        let n = Number(a.charAt(i));
-        if (n === 0) {
-            n = 10;
+        let nA = Number(a.charAt(i));
+        const nB = Number(b.charAt(i));
+        if (nA < nB) {
+            nA += 10;
         }
-        const s = n - Number(b.charAt(i)) - ret;
-        ret = (s < 0 || n === 10) ? 1 : 0;
+        const s = nA - nB - ret;
+        ret = (nA >= 10) ? 1 : 0;
         difference = abs(String(s)) + difference;
     }
     if (ret === 1) {
@@ -394,7 +425,7 @@ const minus = (a, b) => {
 const times = (a, b) => {
     // specific cases
     if (a === "0" || b === "0") {
-        return 0;
+        return "0";
     }
     if (b === "1") {
         return a;
@@ -450,18 +481,45 @@ const times = (a, b) => {
 };
 
 /** The division operation */
-const dividedby = (a, b) => {
+const dividedby = (a, b, euclidian=false) => {
     // specific cases
+    if (a === b) {
+        return "1";
+    }
     if (a === "0") {
-        return 0;
+        return "0";
     }
     if (b === "1") {
         return a;
     }
     if (b === "0") {
-        return "∞";
+        throw new Error("division by zero");
     }
     // general case
+    let ptd = 0;
+    while (! greaterThan(a, b)) {
+        a = times(a, "10");
+        ptd --;
+    }
+    let quotient = "0";
+    let remainder = a;
+    while (greaterThanOrEqual(remainder, b)) {
+        quotient = plus(quotient, "1");
+        remainder = minus(remainder, b);
+    }
+    quotient = shiftByPowerOfTen(quotient, ptd);
+    if (euclidian) {
+        return { q: quotient, r: remainder };
+    } else {
+        if (remainder === "0") {
+            return quotient;
+        } else {
+            // divide remainder recursively
+            remainder = shiftByPowerOfTen(remainder, ptd);
+            const remdiv = dividedby(remainder, b, false);
+            return plus(quotient, remdiv);
+        }
+    }
 };
 
 /** The power operation */
@@ -481,7 +539,8 @@ const power = (a, b) => {
     }
     // a^-b = 1 / a^b
     if (lowerThan(b, "0")) {
-        return dividedby(1, power(a, abs(b)));
+        const res = dividedby("1", power(a, abs(b)));
+        return res;
     }
     // general case
     let result = a;
@@ -523,7 +582,9 @@ module.exports = {
     isEven: isEven,
     isOdd: isOdd,
     greaterThan: greaterThan,
+    greaterThanOrEqual: greaterThanOrEqual,
     lowerThan: lowerThan,
+    lowerThanOrEqual: lowerThanOrEqual,
     min: min,
     max: max,
     // for testing only
