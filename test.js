@@ -129,3 +129,17 @@ describe("power :", () => {
         });
     }
 });
+
+describe("modulo :", () => {
+    const cases = [
+        { a: "12",       b: "4",         r: "0" },
+        { a: "12",       b: "5",         r: "2" },
+        { a: "0.14",     b: "0.04",      r: "0.02" }
+    ];
+    for (const c of cases) {
+        it (`${c.a} % ${c.b} = ${c.r}`, () => {
+            const res = lib.modulo(c.a, c.b)
+            expect(res).toBe(c.r);
+        });
+    }
+});
