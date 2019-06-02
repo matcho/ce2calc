@@ -481,7 +481,7 @@ const times = (a, b) => {
 };
 
 /** The division operation */
-const dividedby = (a, b, euclidian=false) => {
+const dividedby = (a, b, euclidian=false, maxDecimals=20) => {
     // specific cases
     if (a === b) {
         return "1";
@@ -503,6 +503,7 @@ const dividedby = (a, b, euclidian=false) => {
     }
     let quotient = "0";
     let remainder = a;
+    let decimals = 0;
     while (greaterThanOrEqual(remainder, b)) {
         quotient = plus(quotient, "1");
         remainder = minus(remainder, b);
@@ -511,7 +512,7 @@ const dividedby = (a, b, euclidian=false) => {
     if (euclidian) {
         return { q: quotient, r: remainder };
     } else {
-        if (remainder === "0") {
+        if (remainder === "0" || decimalLength(quotient) >= maxDecimals) {
             return quotient;
         } else {
             // divide remainder recursively

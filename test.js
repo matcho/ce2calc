@@ -102,7 +102,8 @@ describe("multiplications :", () => {
 describe("divisions :", () => {
     const cases = [
         { a: "12",       b: "4",         r: "3" },
-        { a: "0.14",     b: "0.04",      r: "3.5" }
+        { a: "0.14",     b: "0.04",      r: "3.5" },
+        { a: "2",        b: "3",         r: "0.66666666666666666666" },
     ];
     for (const c of cases) {
         it (`${c.a} / ${c.b} = ${c.r}`, () => {
