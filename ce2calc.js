@@ -550,6 +550,16 @@ const power = (a, b) => {
     return result;
 };
 
+/**
+ * Returns a % b
+ * @param {string} a 
+ * @param {string} b 
+ */
+const modulo = (a, b) => {
+    const res = dividedby(a, b, true);
+    return res.r;
+};
+
 // multiple arguments for plus() and times()
 
 const ma_plus = (...args) => {
@@ -576,6 +586,7 @@ module.exports = {
     times: ma_times,
     dividedby: dividedby,
     power: power,
+    modulo: modulo,
     abs: abs,
     isNegative: isNegative,
     isPositive: isPositive,
